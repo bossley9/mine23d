@@ -1,9 +1,9 @@
-export async function isValidSaveFolder(
-  saveFolder: string,
+export async function isValidFolder(
+  folder: string,
 ): Promise<boolean> {
   try {
-    const saveInfo = await Deno.stat(saveFolder)
-    return saveInfo.isDirectory
+    const fileinfo = await Deno.stat(folder)
+    return fileinfo.isDirectory
   } catch {
     return false
   }

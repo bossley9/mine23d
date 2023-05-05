@@ -1,5 +1,4 @@
-import { isValidSaveFolder } from './validate.ts'
-import { readSaveFolder } from './read.ts'
+import { getRegions } from './region.ts'
 
 async function main(saveFolder: string | undefined) {
   if (!saveFolder) {
@@ -7,10 +6,10 @@ async function main(saveFolder: string | undefined) {
     Deno.exit(0)
   }
 
-  if (await isValidSaveFolder(saveFolder)) {
-    readSaveFolder(saveFolder)
-  } else {
-    console.error('%cError: invalid save folder supplied.', 'color: red')
+  try {
+    await getRegions(saveFolder)
+  } catch (e) {
+    console.error(`%c${e}`, 'color: red')
     Deno.exit(1)
   }
 }
