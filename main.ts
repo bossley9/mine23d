@@ -1,4 +1,5 @@
 import { isValidSaveFolder } from './validate.ts'
+import { readSaveFolder } from './read.ts'
 
 async function main(saveFolder: string | undefined) {
   if (!saveFolder) {
@@ -7,7 +8,7 @@ async function main(saveFolder: string | undefined) {
   }
 
   if (await isValidSaveFolder(saveFolder)) {
-    console.log('valid')
+    readSaveFolder(saveFolder)
   } else {
     console.error('%cError: invalid save folder supplied.', 'color: red')
     Deno.exit(1)
