@@ -11,20 +11,13 @@ export async function getRegions(saveFolder: string) {
 
   for (const regionDirEntry of Deno.readDirSync(regionPath)) {
     if (!regionFileFormat.test(regionDirEntry.name)) {
+      console.log(
+        `%cWarning: file ${regionDirEntry.name} does not match anvil file naming format.`,
+      )
       continue
     }
-    const [, rawRegionX, rawRegionZ] = regionDirEntry.name.split('.')
-    const regionX = Number(rawRegionX)
-    const regionZ = Number(rawRegionZ)
+    const anvil = new Anvil(`${regionPath}/${regionDirEntry.name}`)
 
-    console.debug(
-      `region file found for region x=${regionX} and z=${regionZ}.`,
-    )
-
-    const anvilFilePath = `${regionPath}/${regionDirEntry.name}`
-
-    console.debug(`anvil file path is ${anvilFilePath}.`)
-
-    const anvil = new Anvil(anvilFilePath)
+    console.log(anvil)
   }
 }

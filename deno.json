@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "start": "deno run --allow-read --allow-write main.ts",
+    "mine23d": "deno run --allow-read --allow-write main.ts",
     "prune": "deno cache --lock-write main.ts"
   },
   "imports": {

@@ -1,13 +1,13 @@
 export class Anvil {
-  private anvilFileData: Uint8Array
+  private header: Uint8Array
 
   constructor(anvilFilePath: string) {
     try {
-      this.anvilFileData = Deno.readFileSync(anvilFilePath)
+      const data = Deno.readFileSync(anvilFilePath)
+      // file begins with an 8KB header
+      this.header = data.slice(0, 8192)
     } catch {
       throw new Error(`unable to read anvil file ${anvilFilePath}.`)
     }
-
-    console.debug('raw anvil data is', this.anvilFileData)
   }
 }
