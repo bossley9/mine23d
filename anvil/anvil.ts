@@ -1,13 +1,6 @@
 import { concatenateBytes } from '@/utils/bytes.ts'
 import { epochToDate } from '@/utils/date.ts'
-
-type Chunk = number
-
-type ChunkLocation = {
-  offset: number
-  sectorCount: number
-  timestamp: Date
-}
+import { type Chunk, type ChunkLocation } from '@/anvil/types.ts'
 
 export class Anvil {
   private data: DataView

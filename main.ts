@@ -1,4 +1,4 @@
-import { getRegions } from './region.ts'
+import { getRegions } from '@/anvil/region.ts'
 
 async function main(saveFolder: string | undefined) {
   if (!saveFolder) {

@@ -1,5 +1,5 @@
-import { isValidFolder } from './validate.ts'
-import { Anvil } from './anvil.ts'
+import { isValidFolder } from '@/utils/io.ts'
+import { Anvil } from '@/anvil/anvil.ts'
 
 const regionFileFormat = new RegExp(/^r\.-?\d+\.-?\d+\.mca$/)
 
