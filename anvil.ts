@@ -11,7 +11,18 @@ export class Anvil {
   private data: Uint8Array
   private chunkLocations: ChunkLocation[] = []
 
-  private parseHeader(header: Uint8Array) {
+  constructor(anvilFilePath: string) {
+    try {
+      this.data = Deno.readFileSync(anvilFilePath)
+      // file begins with an 8KiB header
+      this.chunkLocations = this.getChunkLocations(this.data.slice(0, 8192))
+    } catch {
+      throw new Error(`unable to read anvil file ${anvilFilePath}.`)
+    }
+  }
+
+  private getChunkLocations(header: Uint8Array) {
+    const chunkLocations: ChunkLocation[] = []
     // first 4 KiB of header specifies chunk offsets within file
     // each chunk offset is 4 bytes
     for (let _i = 0; _i < 4096 / 4; _i++) {
@@ -40,18 +51,9 @@ export class Anvil {
       // if offset and sector count are both zero,
       // the chunk has not been generated
       if (chunkLocation.offset !== 0 && chunkLocation.sectorCount !== 0) {
-        this.chunkLocations.push(chunkLocation)
+        chunkLocations.push(chunkLocation)
       }
     }
-  }
-
-  constructor(anvilFilePath: string) {
-    try {
-      this.data = Deno.readFileSync(anvilFilePath)
-      // file begins with an 8KiB header
-      this.parseHeader(this.data.slice(0, 8192))
-    } catch {
-      throw new Error(`unable to read anvil file ${anvilFilePath}.`)
-    }
+    return chunkLocations
   }
 }
