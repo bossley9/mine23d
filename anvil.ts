@@ -1,6 +1,10 @@
+import { concatenateBytes } from '@/utils/bytes.ts'
+import { epochToDate } from '@/utils/date.ts'
+
 type ChunkLocation = {
   offset: number
   sectorCount: number
+  timestamp: Date
 }
 
 export class Anvil {
@@ -12,10 +16,24 @@ export class Anvil {
     // each chunk offset is 4 bytes
     for (let _i = 0; _i < 4096 / 4; _i++) {
       const index = _i * 4
+      const tIndex = index + 4096
+
+      const offset = concatenateBytes([
+        header[index],
+        header[index + 1],
+        header[index + 2],
+      ])
+      const timeEpoch = concatenateBytes([
+        header[tIndex],
+        header[tIndex + 1],
+        header[tIndex + 2],
+        header[tIndex + 3],
+      ])
+
       const chunkLocation: ChunkLocation = {
-        offset: (header[index] << 16) | (header[index + 1] << 8) |
-          header[index + 2],
+        offset,
         sectorCount: header[index + 3],
+        timestamp: epochToDate(timeEpoch),
       }
 
       // if offset and sector count are both zero,

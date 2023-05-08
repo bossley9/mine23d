@@ -4,6 +4,7 @@
     "prune": "deno cache --lock-write main.ts"
   },
   "imports": {
+    "@/": "./",
     "std/": "https://deno.land/std@0.185.0/"
   },
   "fmt": {
