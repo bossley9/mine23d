@@ -8,20 +8,21 @@ type ChunkLocation = {
 }
 
 export class Anvil {
-  private data: Uint8Array
+  private data: DataView
   private chunkLocations: ChunkLocation[] = []
 
   constructor(anvilFilePath: string) {
     try {
-      this.data = Deno.readFileSync(anvilFilePath)
+      const byteArray = Deno.readFileSync(anvilFilePath)
+      this.data = new DataView(byteArray.buffer)
       // file begins with an 8KiB header
-      this.chunkLocations = this.getChunkLocations(this.data.slice(0, 8192))
-    } catch {
-      throw new Error(`unable to read anvil file ${anvilFilePath}.`)
+      this.chunkLocations = this.getChunkLocations()
+    } catch (e) {
+      throw new Error(`unable to read anvil file ${anvilFilePath}: ${e}`)
     }
   }
 
-  private getChunkLocations(header: Uint8Array) {
+  private getChunkLocations() {
     const chunkLocations: ChunkLocation[] = []
     // first 4 KiB of header specifies chunk offsets within file
     // each chunk offset is 4 bytes
@@ -30,21 +31,12 @@ export class Anvil {
       // second 4 KiB of header specifies chunk last updated timestamps
       const tIndex = index + 4096
 
-      const offset = concatenateBytes([
-        header[index],
-        header[index + 1],
-        header[index + 2],
-      ])
-      const timeEpoch = concatenateBytes([
-        header[tIndex],
-        header[tIndex + 1],
-        header[tIndex + 2],
-        header[tIndex + 3],
-      ])
+      const offset = concatenateBytes(this.data, index, index + 3)
+      const timeEpoch = concatenateBytes(this.data, tIndex, tIndex + 4)
 
       const chunkLocation: ChunkLocation = {
         offset,
-        sectorCount: header[index + 3],
+        sectorCount: this.data.getInt8(index + 3),
         timestamp: epochToDate(timeEpoch),
       }
 
