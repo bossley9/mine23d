@@ -8,7 +8,7 @@ type ChunkLocation = {
 }
 
 export class Anvil {
-  private header: Uint8Array
+  private data: Uint8Array
   private chunkLocations: ChunkLocation[] = []
 
   private parseHeader(header: Uint8Array) {
@@ -16,6 +16,7 @@ export class Anvil {
     // each chunk offset is 4 bytes
     for (let _i = 0; _i < 4096 / 4; _i++) {
       const index = _i * 4
+      // second 4 KiB of header specifies chunk last updated timestamps
       const tIndex = index + 4096
 
       const offset = concatenateBytes([
@@ -46,10 +47,9 @@ export class Anvil {
 
   constructor(anvilFilePath: string) {
     try {
-      const data = Deno.readFileSync(anvilFilePath)
-      // file begins with an 8KB header
-      this.header = data.slice(0, 8192)
-      this.parseHeader(this.header)
+      this.data = Deno.readFileSync(anvilFilePath)
+      // file begins with an 8KiB header
+      this.parseHeader(this.data.slice(0, 8192))
     } catch {
       throw new Error(`unable to read anvil file ${anvilFilePath}.`)
     }
