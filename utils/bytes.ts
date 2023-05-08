@@ -8,7 +8,7 @@ export function concatenateBytes(
 ): number {
   let result = 0
   for (let i = start; i < end; i++) {
-    result = (result << 8) + data.getInt8(i)
+    result = (result << 8) + data.getUint8(i)
   }
   return result
 }

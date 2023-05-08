@@ -1,6 +1,8 @@
 import { concatenateBytes } from '@/utils/bytes.ts'
 import { epochToDate } from '@/utils/date.ts'
 
+type Chunk = number
+
 type ChunkLocation = {
   offset: number
   sectorCount: number
@@ -9,14 +11,15 @@ type ChunkLocation = {
 
 export class Anvil {
   private data: DataView
-  private chunkLocations: ChunkLocation[] = []
+  private chunks: Chunk[]
 
   constructor(anvilFilePath: string) {
     try {
       const byteArray = Deno.readFileSync(anvilFilePath)
       this.data = new DataView(byteArray.buffer)
       // file begins with an 8KiB header
-      this.chunkLocations = this.getChunkLocations()
+      const chunkLocations = this.getChunkLocations()
+      this.chunks = this.getChunkData(chunkLocations)
     } catch (e) {
       throw new Error(`unable to read anvil file ${anvilFilePath}: ${e}`)
     }
@@ -47,5 +50,13 @@ export class Anvil {
       }
     }
     return chunkLocations
+  }
+
+  private getChunkData(chunkLocations: ChunkLocation[]): Chunk[] {
+    return chunkLocations.map(({ offset }) => {
+      // offset is measured in 4KiB sectors
+      const chunkStartIndex = 4096 * offset
+      return chunkStartIndex
+    })
   }
 }
