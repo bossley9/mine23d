@@ -1,3 +1,5 @@
+import { NBT } from '@/nbt/nbt.ts'
+
 export type ChunkLocation = {
   offset: number
   sectorCount: number
@@ -13,5 +15,5 @@ export enum CompressionType {
 export type Chunk = {
   compressionType: CompressionType
   lastUpdated: Date
-  data: ArrayBuffer
+  data: NBT
 }

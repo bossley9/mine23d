@@ -17,7 +17,8 @@ export async function getRegions(saveFolder: string) {
       continue
     }
     const anvil = new Anvil(`${regionPath}/${regionDirEntry.name}`)
+    const chunkDataArr = anvil.getChunks().map((chunk) => chunk.data)
 
-    console.log(anvil)
+    console.log(chunkDataArr)
   }
 }

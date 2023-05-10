@@ -1,10 +1,12 @@
 import { concatenateBytes } from '@/utils/bytes.ts'
 import { epochToDate } from '@/utils/date.ts'
+import { NBT } from '@/nbt/nbt.ts'
 import {
   type Chunk,
   type ChunkLocation,
   type CompressionType,
 } from '@/anvil/types.ts'
+import { inflate } from 'npm:pako@2.1.0'
 
 export class Anvil {
   private data: DataView
@@ -16,7 +18,7 @@ export class Anvil {
       this.data = new DataView(byteArray.buffer)
       // file begins with an 8KiB header
       const chunkLocations = this.getChunkLocations()
-      this.chunks = this.getChunkData(chunkLocations)
+      this.chunks = this.parseChunkData(chunkLocations)
     } catch (e) {
       throw new Error(`unable to read anvil file ${anvilFilePath}: ${e}`)
     }
@@ -49,7 +51,7 @@ export class Anvil {
     return chunkLocations
   }
 
-  private getChunkData(chunkLocations: ChunkLocation[]): Chunk[] {
+  private parseChunkData(chunkLocations: ChunkLocation[]): Chunk[] {
     return chunkLocations.map(({ offset: locationOffset, timestamp }) => {
       // offset is measured in 4KiB sectors
       const offset = 4096 * locationOffset
@@ -62,12 +64,17 @@ export class Anvil {
         offset + 5,
         offset + 5 + dataLength - 1,
       )
+      const uncompressedData: ArrayBuffer = inflate(new Uint8Array(data)).buffer
 
       return {
         compressionType,
         lastUpdated: timestamp,
-        data,
+        data: new NBT(uncompressedData),
       }
     })
+  }
+
+  public getChunks() {
+    return this.chunks
   }
 }
