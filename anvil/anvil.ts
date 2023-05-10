@@ -1,6 +1,10 @@
 import { concatenateBytes } from '@/utils/bytes.ts'
 import { epochToDate } from '@/utils/date.ts'
-import { type Chunk, type ChunkLocation } from '@/anvil/types.ts'
+import {
+  type Chunk,
+  type ChunkLocation,
+  type CompressionType,
+} from '@/anvil/types.ts'
 
 export class Anvil {
   private data: DataView
@@ -46,10 +50,24 @@ export class Anvil {
   }
 
   private getChunkData(chunkLocations: ChunkLocation[]): Chunk[] {
-    return chunkLocations.map(({ offset }) => {
+    return chunkLocations.map(({ offset: locationOffset, timestamp }) => {
       // offset is measured in 4KiB sectors
-      const chunkStartIndex = 4096 * offset
-      return chunkStartIndex
+      const offset = 4096 * locationOffset
+
+      // first 4 bytes specify payload length
+      const dataLength = concatenateBytes(this.data, offset, offset + 4)
+      const compressionType: CompressionType = this.data.getUint8(offset + 4)
+
+      const data = this.data.buffer.slice(
+        offset + 5,
+        offset + 5 + dataLength - 1,
+      )
+
+      return {
+        compressionType,
+        lastUpdated: timestamp,
+        data,
+      }
     })
   }
 }
