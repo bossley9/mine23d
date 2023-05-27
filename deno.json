@@ -1,11 +1,13 @@
 {
   "tasks": {
     "mine23d": "deno run --allow-read --allow-write main.ts",
+    "readnbt": "deno run --allow-read --allow-write nbt/readnbt.ts",
     "prune": "deno cache --lock-write main.ts"
   },
   "imports": {
     "@/": "./",
-    "std/": "https://deno.land/std@0.185.0/"
+    "std/": "https://deno.land/std@0.185.0/",
+    "compress/": "https://deno.land/x/compress@v0.4.5/"
   },
   "fmt": {
     "indentWidth": 2,
