@@ -22,97 +22,103 @@ export class NBT {
   ): ParsedTag {
     const tag = this.data.getUint8(index)
 
+    // TODO determine if needed and remove if unnecessary
+    if (tag === TagType.TAG_End) {
+      return {
+        tag,
+        end: index,
+        name: '',
+        data: '',
+      }
+    }
+
     // index = tag type
     // index + 1, index + 2 = tag name length
     // index + 3 = tag name
     // index + 3 + tag name length = payload
 
+    const nameLength = this.data.getUint16(index + 1)
+    const name = this.parseStringData(index + 3, nameLength)
+    const payloadIndex = index + 3 + nameLength
+
     switch (tag) {
-      case TagType.TAG_End: {
-        return {
-          tag,
-          end: index,
-          name: '',
-          data: '',
-        }
-      }
       case TagType.TAG_Byte: {
         return {
           tag,
-          end: index,
-          name: '',
-          data: 'tag byte',
+          end: payloadIndex,
+          name,
+          data: this.data.getInt8(payloadIndex),
         }
       }
       case TagType.TAG_Short: {
         return {
           tag,
-          end: index,
-          name: '',
-          data: 'tag short',
+          end: payloadIndex + 1,
+          name,
+          data: this.data.getInt16(payloadIndex),
         }
       }
       case TagType.TAG_Int: {
         return {
           tag,
-          end: index,
-          name: '',
-          data: 'tag int',
+          end: payloadIndex + 3,
+          name,
+          data: this.data.getInt32(payloadIndex),
         }
       }
       case TagType.TAG_Long: {
         return {
           tag,
-          end: index,
-          name: '',
-          data: 'tag long',
+          end: payloadIndex + 7,
+          name,
+          // TODO serialize bigints
+          // data: this.data.getBigInt64(payloadIndex),
+          data: 'TODO',
         }
       }
       case TagType.TAG_Float: {
         return {
           tag,
-          end: index,
-          name: '',
+          end: payloadIndex,
+          name,
           data: 'tag float',
         }
       }
       case TagType.TAG_Double: {
         return {
           tag,
-          end: index,
-          name: '',
-          data: 'tag double',
+          end: payloadIndex + 7,
+          name,
+          data: this.data.getFloat64(payloadIndex),
         }
       }
       case TagType.TAG_Byte_Array: {
         return {
           tag,
-          end: index,
-          name: '',
+          end: payloadIndex,
+          name,
           data: 'tag byte array',
         }
       }
       case TagType.TAG_String: {
         return {
           tag,
-          end: index,
-          name: '',
+          end: payloadIndex,
+          name,
           data: 'tag string',
         }
       }
       case TagType.TAG_List: {
         return {
           tag,
-          end: index,
-          name: '',
+          end: payloadIndex,
+          name,
           data: 'tag list',
         }
       }
 
       case TagType.TAG_Compound: {
-        const nameLength = this.data.getUint16(index + 1)
-        const name = this.parseStringData(index + 3, nameLength)
-        let nextIndex = index + 3 + nameLength
+        let nextIndex = payloadIndex
 
         const data: ParsedTag[] = []
         while (this.data.getUint8(nextIndex) !== TagType.TAG_End) {
@@ -122,7 +128,7 @@ export class NBT {
         }
         return {
           tag,
-          end: nextIndex,
+          end: nextIndex + 1, // includes TAG_End
           name,
           data,
         }
@@ -131,8 +137,8 @@ export class NBT {
       case TagType.TAG_Int_Array: {
         return {
           tag,
-          end: index,
-          name: '',
+          end: payloadIndex,
+          name,
           data: 'tag int array',
         }
       }
@@ -140,7 +146,7 @@ export class NBT {
         return {
           tag,
           end: index,
-          name: '',
+          name,
           data: 'tag long array',
         }
       }
@@ -149,7 +155,7 @@ export class NBT {
           tag,
           end: index,
           name: 'invalid tag',
-          data: '',
+          data: null,
         }
       }
     }
