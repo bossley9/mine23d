@@ -1,5 +1,6 @@
 import { ParsedTag, TagType } from '@/nbt/types.ts'
 import { getByteString } from '@/utils/bytes.ts'
+import { getTagPayload } from '@/nbt/payload.ts'
 
 export class NBT {
   private data: DataView
@@ -36,95 +37,94 @@ export class NBT {
 
     switch (tag) {
       case TagType.TAG_Byte: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex,
-          name,
-          data: this.data.getInt8(payloadIndex),
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Short: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex + 1,
-          name,
-          data: this.data.getInt16(payloadIndex),
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Int: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex + 3,
-          name,
-          data: this.data.getInt32(payloadIndex),
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Long: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex + 7,
-          name,
-          // TODO serialize bigints
-          // data: this.data.getBigInt64(payloadIndex),
-          data: 'TODO',
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Float: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex + 3,
-          name,
-          data: this.data.getFloat32(payloadIndex),
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Double: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex + 7,
-          name,
-          data: this.data.getFloat64(payloadIndex),
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Byte_Array: {
-        const len = this.data.getInt32(payloadIndex)
-        let endIndex = payloadIndex + 3
-
-        const data: number[] = []
-        for (let i = 0; i < len; i++) {
-          data.push(this.data.getInt8(endIndex + 1))
-          endIndex = endIndex + 1
-        }
-
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: endIndex,
-          name,
-          data,
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_String: {
-        const strLen = this.data.getUint16(payloadIndex + 1)
-        const str = getByteString(this.data, payloadIndex + 1, strLen)
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex,
-          name,
-          data: str,
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_List: {
         const listTag = this.data.getUint8(payloadIndex)
         const listLength = this.data.getInt32(payloadIndex + 1)
         let endIndex = payloadIndex + 1 + 3
 
+        if (listLength === 0) {
+          return {
+            tag,
+            end: endIndex,
+            name,
+            data: [],
+          }
+        }
+
         // TODO handle other tag types
         if (listTag === TagType.TAG_String) {
-          const data: string[] = []
+          const data: unknown[] = []
           for (let i = 0; i < listLength; i++) {
-            const strLen = this.data.getUint16(endIndex + 1)
-            const str = getByteString(this.data, endIndex + 3, strLen)
-            data.push(str)
-            endIndex = endIndex + 3 + strLen
+            const res = getTagPayload(
+              this.data,
+              listTag,
+              endIndex + 1,
+            )
+            data.push(res.payload)
+            endIndex = res.endIndex
           }
 
           return {
@@ -159,35 +159,44 @@ export class NBT {
           data,
         }
       }
-
       case TagType.TAG_Int_Array: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: payloadIndex,
-          name,
-          data: 'tag int array',
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Long_Array: {
-        return {
+        const res = getTagPayload(
+          this.data,
           tag,
-          end: index,
-          name,
-          data: 'tag long array',
-        }
+          payloadIndex,
+        )
+        return { tag, end: res.endIndex, name, data: res.payload }
       }
       default: {
+        const res = getTagPayload(
+          this.data,
+          tag,
+          payloadIndex,
+        )
         return {
           tag,
-          end: index,
+          end: res.endIndex,
           name: 'invalid tag',
-          data: null,
+          data: res.payload,
         }
       }
     }
   }
 
   public toString() {
-    return JSON.stringify(this.parsedData, null, 2)
+    return JSON.stringify(
+      this.parsedData,
+      // bigint serialization compatibility
+      (_, v) => typeof v === 'bigint' ? v.toString() : v,
+      2,
+    )
   }
 }
