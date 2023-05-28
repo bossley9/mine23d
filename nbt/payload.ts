@@ -1,4 +1,5 @@
 import { getByteString } from '@/utils/bytes.ts'
+import { parseTag } from '@/nbt/tag.ts'
 import { TagType } from '@/nbt/types.ts'
 
 type PayloadResult = {
@@ -75,6 +76,14 @@ export function parseTagPayload(
       const listTagType = data.getUint8(startIndex)
       const listLength = data.getInt32(startIndex + 1)
       let endIndex = startIndex + 1 + 3
+
+      if (listTagType === TagType.TAG_Compound) {
+        const res = parseTag(data, endIndex + 1)
+        return {
+          endIndex: res.end,
+          payload: res.data,
+        }
+      }
 
       const payload: unknown[] = []
       for (let i = 0; i < listLength; i++) {
