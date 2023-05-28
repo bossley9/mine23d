@@ -10,14 +10,6 @@ export class NBT {
     this.parsedData = this.parseDataAt(0)
   }
 
-  private parseStringData(startIndex: number, length: number): string {
-    let s = ''
-    for (let i = startIndex; i < startIndex + length; i++) {
-      s += String.fromCharCode(this.data.getUint8(i))
-    }
-    return s
-  }
-
   private parseDataAt(
     index: number,
   ): ParsedTag {
