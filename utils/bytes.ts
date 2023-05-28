@@ -12,3 +12,15 @@ export function concatenateBytes(
   }
   return result
 }
+
+export function getByteString(
+  data: DataView,
+  startIndex: number,
+  length: number,
+): string {
+  let s = ''
+  for (let i = startIndex; i < startIndex + length; i++) {
+    s += String.fromCharCode(data.getUint8(i))
+  }
+  return s
+}

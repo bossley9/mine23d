@@ -1,4 +1,5 @@
 import { ParsedTag, TagType } from '@/nbt/types.ts'
+import { getByteString } from '@/utils/bytes.ts'
 
 export class NBT {
   private data: DataView
@@ -38,7 +39,7 @@ export class NBT {
     // index + 3 + tag name length = payload
 
     const nameLength = this.data.getUint16(index + 1)
-    const name = this.parseStringData(index + 3, nameLength)
+    const name = getByteString(this.data, index + 3, nameLength)
     const payloadIndex = index + 3 + nameLength
 
     switch (tag) {
@@ -79,9 +80,9 @@ export class NBT {
       case TagType.TAG_Float: {
         return {
           tag,
-          end: payloadIndex,
+          end: payloadIndex + 3,
           name,
-          data: 'tag float',
+          data: this.data.getFloat32(payloadIndex),
         }
       }
       case TagType.TAG_Double: {
@@ -93,27 +94,60 @@ export class NBT {
         }
       }
       case TagType.TAG_Byte_Array: {
+        const len = this.data.getInt32(payloadIndex)
+        let endIndex = payloadIndex + 3
+
+        const data: number[] = []
+        for (let i = 0; i < len; i++) {
+          data.push(this.data.getInt8(endIndex + 1))
+          endIndex = endIndex + 1
+        }
+
         return {
           tag,
-          end: payloadIndex,
+          end: endIndex,
           name,
-          data: 'tag byte array',
+          data,
         }
       }
       case TagType.TAG_String: {
+        const strLen = this.data.getUint16(payloadIndex + 1)
+        const str = getByteString(this.data, payloadIndex + 1, strLen)
         return {
           tag,
           end: payloadIndex,
           name,
-          data: 'tag string',
+          data: str,
         }
       }
       case TagType.TAG_List: {
-        return {
-          tag,
-          end: payloadIndex,
-          name,
-          data: 'tag list',
+        const listTag = this.data.getUint8(payloadIndex)
+        const listLength = this.data.getInt32(payloadIndex + 1)
+        let endIndex = payloadIndex + 1 + 3
+
+        // TODO handle other tag types
+        if (listTag === TagType.TAG_String) {
+          const data: string[] = []
+          for (let i = 0; i < listLength; i++) {
+            const strLen = this.data.getUint16(endIndex + 1)
+            const str = getByteString(this.data, endIndex + 3, strLen)
+            data.push(str)
+            endIndex = endIndex + 3 + strLen
+          }
+
+          return {
+            tag,
+            end: payloadIndex,
+            name,
+            data,
+          }
+        } else {
+          return {
+            tag,
+            end: payloadIndex,
+            name,
+            data: 'TODO',
+          }
         }
       }
 
