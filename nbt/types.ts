@@ -15,6 +15,7 @@ export enum TagType {
 }
 
 export type ParsedTag = {
+  tag: TagType
   end: number
   name: string
   data: unknown

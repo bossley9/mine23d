@@ -11,7 +11,7 @@ async function readnbt(nbtFile: string | undefined) {
     const byteArray = await Deno.readFile(nbtFile)
     const uncompressedData: ArrayBuffer = gunzip(byteArray).buffer
     const nbt = new NBT(uncompressedData)
-    console.log(nbt)
+    console.log(nbt.toString())
   } catch (e) {
     console.error(`%c${e}`, 'color: red')
     Deno.exit(1)
