@@ -5,7 +5,7 @@ type PayloadResult = {
   payload: unknown
   endIndex: number
 }
-export function getTagPayload(
+export function parseTagPayload(
   data: DataView,
   tagType: TagType,
   startIndex: number,
@@ -53,7 +53,7 @@ export function getTagPayload(
 
       const payload: unknown[] = []
       for (let i = 0; i < arrayLen; i++) {
-        const res = getTagPayload(data, TagType.TAG_Int, endIndex + 1)
+        const res = parseTagPayload(data, TagType.TAG_Int, endIndex + 1)
         payload.push(res.payload)
         endIndex = res.endIndex
       }
@@ -71,13 +71,30 @@ export function getTagPayload(
         payload: str,
       }
     }
+    case TagType.TAG_List: {
+      const listTagType = data.getUint8(startIndex)
+      const listLength = data.getInt32(startIndex + 1)
+      let endIndex = startIndex + 1 + 3
+
+      const payload: unknown[] = []
+      for (let i = 0; i < listLength; i++) {
+        const res = parseTagPayload(data, listTagType, endIndex + 1)
+        payload.push(res.payload)
+        endIndex = res.endIndex
+      }
+
+      return {
+        endIndex,
+        payload,
+      }
+    }
     case TagType.TAG_Int_Array: {
       const arrayLen = data.getInt32(startIndex)
       let endIndex = startIndex + 3
 
       const payload: unknown[] = []
       for (let i = 0; i < arrayLen; i++) {
-        const res = getTagPayload(data, TagType.TAG_Int, endIndex + 1)
+        const res = parseTagPayload(data, TagType.TAG_Int, endIndex + 1)
         payload.push(res.payload)
         endIndex = res.endIndex
       }
@@ -93,7 +110,7 @@ export function getTagPayload(
 
       const payload: unknown[] = []
       for (let i = 0; i < arrayLen; i++) {
-        const res = getTagPayload(data, TagType.TAG_Int, endIndex + 1)
+        const res = parseTagPayload(data, TagType.TAG_Int, endIndex + 1)
         payload.push(res.payload)
         endIndex = res.endIndex
       }

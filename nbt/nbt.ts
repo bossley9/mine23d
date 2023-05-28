@@ -1,6 +1,6 @@
 import { ParsedTag, TagType } from '@/nbt/types.ts'
 import { getByteString } from '@/utils/bytes.ts'
-import { getTagPayload } from '@/nbt/payload.ts'
+import { parseTagPayload } from '@/nbt/payload.ts'
 
 export class NBT {
   private data: DataView
@@ -37,7 +37,7 @@ export class NBT {
 
     switch (tag) {
       case TagType.TAG_Byte: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -45,7 +45,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Short: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -53,7 +53,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Int: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -61,7 +61,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Long: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -69,7 +69,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Float: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -77,7 +77,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Double: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -85,7 +85,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Byte_Array: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -93,7 +93,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_String: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -105,20 +105,11 @@ export class NBT {
         const listLength = this.data.getInt32(payloadIndex + 1)
         let endIndex = payloadIndex + 1 + 3
 
-        if (listLength === 0) {
-          return {
-            tag,
-            end: endIndex,
-            name,
-            data: [],
-          }
-        }
-
         // TODO handle other tag types
         if (listTag === TagType.TAG_String) {
           const data: unknown[] = []
           for (let i = 0; i < listLength; i++) {
-            const res = getTagPayload(
+            const res = parseTagPayload(
               this.data,
               listTag,
               endIndex + 1,
@@ -142,7 +133,6 @@ export class NBT {
           }
         }
       }
-
       case TagType.TAG_Compound: {
         let nextIndex = payloadIndex
 
@@ -160,7 +150,7 @@ export class NBT {
         }
       }
       case TagType.TAG_Int_Array: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -168,7 +158,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       case TagType.TAG_Long_Array: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
@@ -176,7 +166,7 @@ export class NBT {
         return { tag, end: res.endIndex, name, data: res.payload }
       }
       default: {
-        const res = getTagPayload(
+        const res = parseTagPayload(
           this.data,
           tag,
           payloadIndex,
